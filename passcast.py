@@ -21,6 +21,14 @@ def main():
     # Global variables
     global args
 
+    # Validate Args
+    if(args.interactive and args.mangler):
+        print("Invalid flag commbination: -i and -m")
+        return
+    elif(not args.interactive and not args.mangler):
+        print("Invalid argument set, use -h for help.")
+        return
+
     # Welcome
     printBanner()
     
@@ -54,6 +62,7 @@ def interactive():
                     "Significant employees",
                     "Slogans and mottos",
                     "Locations",
+                    "Domains",
                     "Social media handles",
                     "Important dates [dd-mm-yyyy]",
                     "Where is this password used",
@@ -83,21 +92,21 @@ def interactive():
                             "\t2) Break up words at natural breaks. (Example: Blackboard -> black,board,blackboard)\n"+
                             "\t3) This is more of an art than a science, put yourself in the users shoes.\n")
     for q in questions:
-        for w in input(q+": ").split(','):
+        for w in askQuestion(q).split(','):
             data.append(w.strip())
-        printGreen("\nGenerating words...")
-        words = generateSeeds(data)
-        printGreen("Done.")
-        mangle = input("\nContinue to mangler [y/n]?")
-        if mangle.lower() != 'y':
-            mangle = input("\nAre you sure you don't want to use the mangler [y/n]?")
-            if mangle.lower() == 'n':
-                mangle(words)
-            else:
-                saveList(input("\nOutput path and filename (appends if the file already exists):"), words)
-                print("Good luck :D")
-        else:
+    printGreen("\nGenerating words...")
+    words = generateSeeds(data)
+    printGreen("Done.")
+    mangle = input("\nContinue to mangler [y/n]?")
+    if mangle.lower() != 'y':
+        mangle = input("\nAre you sure you don't want to use the mangler [y/n]?")
+        if mangle.lower() == 'n':
             mangle(words)
+        else:
+            saveList(input("\nOutput path and filename (appends if the file already exists):"), words)
+            print("Good luck :D")
+    else:
+        mangle(words)
     return
 
 def generateSeeds(data):
@@ -119,7 +128,10 @@ def saveList(filename, words):
         try:
             out = open(filename, "a")
             for w in words:
-                out.write(w)
+                if isinstance(w, datetime):
+                    out.write(str(w.date()+"\n"))
+                else: 
+                    out.write(w+"\n")
             done = True
         except:
             printRed("Unable to save list to: "+filename)
@@ -147,6 +159,11 @@ def printGreen(data):
 def printRed(data):
     print("\u001b[31m"+data+"\u001b[37m")
     return
+
+def askQuestion(data):
+    print("\u001b[36m"+data+": \u001b[37m", end="")
+    ans = input("")
+    return ans
 
 # Execute main on start up
 if __name__ == "__main__":
