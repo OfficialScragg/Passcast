@@ -39,7 +39,7 @@ def main():
         success = False
         while not success:
             try:
-                data = open(input("Wordlist path and filename:"), 'r').read().split('\n')
+                data = open(input("Wordlist path and filename: "), 'r').read().split('\n')
                 success = True
                 mangle(data)
             except:
@@ -99,13 +99,13 @@ def interactive():
     printGreen("\nGenerating words...")
     words = generateSeeds(data)
     printGreen("Done.")
-    mangle = input("\nContinue to mangler [y/n]?")
+    mangle = input("\nContinue to mangler [y/n]? ")
     if mangle.lower() != 'y':
-        mangle = input("\nAre you sure you don't want to use the mangler [y/n]?")
+        mangle = input("\nAre you sure you don't want to use the mangler [y/n]? ")
         if mangle.lower() == 'n':
             mangle(words)
         else:
-            saveList(input("\nOutput path and filename (appends if the file already exists):"), words)
+            saveList(input("\nOutput path and filename (appends if the file already exists): "), words)
             print("Good luck :D")
     else:
         mangle(words)
@@ -157,11 +157,11 @@ def generateSeeds(data):
     tmp = []
 
     # All combos with and without joining chars
-    for w in seeds:
-        for w in seeds:
+    for a in seeds:
+        for b in seeds:
             joiners = ['', '@', '_', '-', ',', '#', '&', '>', '<', '|', '\\', '/', ':', '+', '=', ' ']
             for c in joiners:
-                tmp.append(str(w)+c+str(w))
+                tmp.append(str(a)+c+str(b))
     for t in tmp:
         seeds.append(str(t))
     tmp = []
@@ -176,6 +176,10 @@ def generateSeeds(data):
                 tmp.append(str(w)+j+str(y))
     for t in tmp:
         seeds.append(str(t))
+    print("Word count:", len(seeds))
+    # Remove duplicates
+    printRed("Removing duplicates...")
+    seeds = list(dict.fromkeys(seeds))
     print("Word count:", len(seeds))
     return seeds
 
@@ -193,14 +197,14 @@ def saveList(filename, words):
             done = True
         except:
             printRed("Unable to save list to: "+filename)
-            filename = input("\nOutput path and filename (appends if the file already exists):")
+            filename = input("\nOutput path and filename (appends if the file already exists): ")
     print("Wordlist saved.")
 
 # Advanced password generation from seed words.
 def mangle(words):
     
     print("Time for the real stuff...")
-    saveList(input("\nOutput path and filename (appends if the file already exists):"), words)
+    saveList(input("\nOutput path and filename (appends if the file already exists): "), words)
     print("Good luck :D")
 
 # Print welcome text
