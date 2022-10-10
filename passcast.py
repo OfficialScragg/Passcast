@@ -90,7 +90,9 @@ def interactive():
                     "Extra keywords"]
         printRed("Tips: \n\t1) You can add multiple answers for each question - separate answers with commas. (Example: cats,dogs,wifi,letmein)\n"+
                             "\t2) Break up words at natural breaks. (Example: Blackboard -> black,board,blackboard)\n"+
-                            "\t3) This is more of an art than a science, put yourself in the users shoes.\n")
+                            "\t3) This is more of an art than a science, put yourself in the users shoes.\n"+
+                            "\t4) Skip questions if you don't have that information.\n")
+    # Gather question answers from user
     for q in questions:
         for w in askQuestion(q).split(','):
             data.append(w.strip())
@@ -109,19 +111,75 @@ def interactive():
         mangle(words)
     return
 
+# Generate basic seeds from base words.
+# 1) Natural, all caps, all lower.
+# 2) All word combos joined with nothing, underscore, dash, comma, slash, @, + and =
+# 3) Append years to each of the above.
 def generateSeeds(data):
-    # Generate basic seeds from base words.
-    res = []
+    seeds = []
+    tmp = []
+    words = []
     for d in data:
         if(len(d) == 10 and '-' in d):
             try:
-                res.append(datetime.strptime(d, "%d-%m-%Y"))
+                words.append(datetime.strptime(d, "%d-%m-%Y"))
             except:
-                res.append(d)
+                words.append(d)
         else:
-            res.append(d)
-    return res
+            words.append(d)
+    # Add originals to seeds
+    for w in words:
+        if not isinstance(w, datetime):
+            tmp.append(w)
+        else:
+            tmp.append(str(w.date()))
+            tmp.append(str(w.date().day))
+            tmp.append(str(w.date().month))
+            tmp.append(str(w.date().year))
+    for t in tmp:
+        seeds.append(str(t))
+    tmp = []
 
+    # All capitalisation variations
+    for w in seeds:
+        if not isinstance(w, datetime):
+            up = w.upper()
+            lo = w.lower()
+            std = w.capitalize()
+            if w != lo:
+                tmp.append(lo)
+            if w != up:
+                tmp.append(up)
+            if w != std:
+                tmp.append(std)
+    for t in tmp:
+        seeds.append(str(t))
+    tmp = []
+
+    # All combos with and without joining chars
+    for w in seeds:
+        for w in seeds:
+            joiners = ['', '@', '_', '-', ',', '#', '&', '>', '<', '|', '\\', '/', ':', '+', '=', ' ']
+            for c in joiners:
+                tmp.append(str(w)+c+str(w))
+    for t in tmp:
+        seeds.append(str(t))
+    tmp = []
+
+    # Append years
+    curr_year = int(datetime.today().year)
+    years = [str(curr_year), str(curr_year-1), str(curr_year-2), str(curr_year-3), str(curr_year-4)]
+    joiners = ['', '@', '_', '+', '=', '#', '!', '&', '-']
+    for w in seeds:
+        for y in years:
+            for j in joiners:
+                tmp.append(str(w)+j+str(y))
+    for t in tmp:
+        seeds.append(str(t))
+    print("Word count:", len(seeds))
+    return seeds
+
+# Save the wordlist to a file
 def saveList(filename, words):
     done = False
     while not done:
@@ -131,19 +189,21 @@ def saveList(filename, words):
                 if isinstance(w, datetime):
                     out.write(str(w.date()+"\n"))
                 else: 
-                    out.write(w+"\n")
+                    out.write(str(w)+"\n")
             done = True
         except:
             printRed("Unable to save list to: "+filename)
             filename = input("\nOutput path and filename (appends if the file already exists):")
     print("Wordlist saved.")
 
+# Advanced password generation from seed words.
 def mangle(words):
-    # Advanced password generation from seed words.
+    
     print("Time for the real stuff...")
     saveList(input("\nOutput path and filename (appends if the file already exists):"), words)
     print("Good luck :D")
 
+# Print welcome text
 def printBanner():
     # Clear Screen
     print("\033[2J\033[H")
@@ -152,6 +212,7 @@ def printBanner():
     printRed("=================================================================")
     return
 
+# Printing coloured text
 def printGreen(data):
     print("\u001b[32m"+data+"\u001b[37m")
     return
