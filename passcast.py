@@ -7,6 +7,7 @@
 
 # Import
 import argparse
+from random import randint
 from datetime import datetime
 
 # Arguments
@@ -112,13 +113,13 @@ def interactive():
     return
 
 # Generate basic seeds from base words.
-# 1) Natural, all caps, all lower.
-# 2) All word combos joined with nothing, underscore, dash, comma, slash, @, + and =
-# 3) Append years to each of the above.
 def generateSeeds(data):
+    # Word lists
     seeds = []
     tmp = []
     words = []
+
+    # Break up dates into integers
     for d in data:
         if(len(d) == 10 and '-' in d):
             try:
@@ -127,6 +128,7 @@ def generateSeeds(data):
                 words.append(d)
         else:
             words.append(d)
+
     # Add originals to seeds
     for w in words:
         if not isinstance(w, datetime):
@@ -141,6 +143,68 @@ def generateSeeds(data):
     tmp = []
 
     # All capitalisation variations
+    opt = input("\nVary capitalization (approx."+str(len(seeds)*3)+" words) [Y/N]: ")
+    while opt.upper() != 'Y' and opt.upper() != 'N':
+        printRed("Illegal choice!")
+        opt = input("Vary capitalization (approx."+str(len(seeds)*3)+" words) [Y/N]: ")
+    if (opt.upper() == 'Y'):
+        seeds = capitalVariation(seeds)
+
+    # All combos with and without joining chars
+    opt = input("\nCombine seed words with each other and with joining chars (approx. "+str(len(seeds)*len(seeds)*16)+" words) [Y/N]: ")
+    while opt.upper() != 'Y' and opt.upper() != 'N':
+        printRed("Illegal choice!")
+        opt = input("Combine seed words with each other and with joining chars (approx. "+str(len(seeds)*len(seeds)*16)+" words) [Y/N]: ")
+    if (opt.upper() == 'Y'):
+        seeds = combine(seeds, [])
+
+    # Append years
+    opt = input("\nAppend years (current and the last 4) to the end of each word (approx. "+str(len(seeds)*5)+" words) [Y/N]: ")
+    while opt.upper() != 'Y' and opt.upper() != 'N':
+        printRed("Illegal choice!")
+        opt = input("Append years (current and the last 4) to the end of each word (approx. "+str(len(seeds)*5)+" words) [Y/N]: ")
+    if (opt.upper() == 'Y'):
+        seeds = appendYears(seeds, [])
+
+    # Leet chars
+    opt = input("\nSubstitute some chars like a hacker e.g. L33t 3nc0d1ng (approx. "+str(len(seeds)*3)+" words) [Y/N]: ")
+    while opt.upper() != 'Y' and opt.upper() != 'N':
+        printRed("Illegal choice!")
+        opt = input("Substitute some chars like a hacker e.g. L33t 3nc0d1ng (approx. "+str(len(seeds)*3)+" words) [Y/N]: ")
+    if (opt.upper() == 'Y'):
+        seeds = leetSubs(seeds)
+
+    # Remove duplicates
+    printRed("Removing duplicates...")
+    seeds = list(dict.fromkeys(seeds))
+
+    # Output Stats
+    print("Word count:", len(seeds))
+    return seeds
+
+# Make l33t character substitutions
+def leetSubs(seeds):
+    tmp = []
+    for w in seeds:
+        if randint(0, 2) < 2 and 'a' in w.lower():
+            tmp.append(w.replace('a', '@').replace('A', '@'))
+        if randint(0, 2) < 2 and 'e' in w.lower():
+            tmp.append(w.replace('e', '3').replace('E', '3'))
+        if randint(0, 2) < 2 and 'o' in w.lower():
+            tmp.append(w.replace('o', '0').replace('O', '0'))
+        if randint(0, 2) < 2 and ('e' in w.lower() or 'o' in w.lower()):
+            tmp.append(w.replace('o', '0').replace('O', '0').replace('e', '3').replace('E', '3'))
+        if randint(0, 2) < 2 and ('a' in w.lower() or 'e' in w.lower()):
+            tmp.append(w.replace('a', '@').replace('A', '@').replace('e', '3').replace('E', '3'))
+        if randint(0, 2) < 2 and ('a' in w.lower() or 'o' in w.lower()):
+            tmp.append(w.replace('a', '@').replace('A', '@').replace('o', '0').replace('O', '0'))
+    for t in tmp:
+        seeds.append(t)
+    return seeds
+
+# Vary capitalisation: Natural, all caps, all lower.
+def capitalVariation(seeds):
+    tmp = []
     for w in seeds:
         if not isinstance(w, datetime):
             up = w.upper()
@@ -154,34 +218,35 @@ def generateSeeds(data):
                 tmp.append(std)
     for t in tmp:
         seeds.append(str(t))
-    tmp = []
+    return seeds
 
-    # All combos with and without joining chars
+# Combine all words together with joiners and withour joiners.
+def combine(seeds, joiners):
+    tmp = []
+    if joiners == []:
+        joiners = ['', '@', '_', '-', ',', '#', '&', '>', '<', '|', '\\', '/', ':', '+', '=', ' ']
     for a in seeds:
         for b in seeds:
-            joiners = ['', '@', '_', '-', ',', '#', '&', '>', '<', '|', '\\', '/', ':', '+', '=', ' ']
             for c in joiners:
                 if a != b:
                     tmp.append(str(a)+c+str(b))
     for t in tmp:
         seeds.append(str(t))
-    tmp = []
+    return seeds
 
-    # Append years
+# Append current and last 4 years on the end of each word.
+def appendYears(seeds, joiners):
+    tmp = []
     curr_year = int(datetime.today().year)
     years = [str(curr_year), str(curr_year-1), str(curr_year-2), str(curr_year-3), str(curr_year-4)]
-    joiners = ['', '@', '_', '+', '=', '#', '!', '&', '-']
+    if joiners == []:
+        joiners = ['', '@', '_', '+', '=', '#', '!', '&', '-']
     for w in seeds:
         for y in years:
             for j in joiners:
                 tmp.append(str(w)+j+str(y))
     for t in tmp:
         seeds.append(str(t))
-    print("Word count:", len(seeds))
-    # Remove duplicates
-    printRed("Removing duplicates...")
-    seeds = list(dict.fromkeys(seeds))
-    print("Word count:", len(seeds))
     return seeds
 
 # Save the wordlist to a file
