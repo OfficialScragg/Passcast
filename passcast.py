@@ -161,7 +161,8 @@ def generateSeeds(data):
         for b in seeds:
             joiners = ['', '@', '_', '-', ',', '#', '&', '>', '<', '|', '\\', '/', ':', '+', '=', ' ']
             for c in joiners:
-                tmp.append(str(a)+c+str(b))
+                if a != b:
+                    tmp.append(str(a)+c+str(b))
     for t in tmp:
         seeds.append(str(t))
     tmp = []
